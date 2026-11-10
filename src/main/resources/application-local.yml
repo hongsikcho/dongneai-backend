@@ -1,0 +1,21 @@
+# 로컬 개발 전용. docker compose의 MySQL에 접속한다.
+# 여기 값은 로컬용 더미이며 운영 비밀값을 넣지 않는다.
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/dongneai?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: dongneai
+    password: localpass
+  flyway:
+    locations: classpath:db/migration,classpath:db/seed
+  jpa:
+    properties:
+      hibernate:
+        format_sql: true
+
+app:
+  jwt:
+    secret: local-dev-secret-change-me-0123456789abcdef
+
+logging:
+  level:
+    org.hibernate.SQL: debug

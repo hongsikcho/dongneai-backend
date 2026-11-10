@@ -1,0 +1,22 @@
+# 로컬 개발용 MySQL. 실행: docker compose up -d
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: dongneai-mysql
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: dongneai
+      MYSQL_USER: dongneai
+      MYSQL_PASSWORD: localpass      # 로컬 전용 더미 값
+      MYSQL_ROOT_PASSWORD: localroot # 로컬 전용 더미 값
+      TZ: Asia/Seoul
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_0900_ai_ci
+      - --ngram_token_size=2
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+volumes:
+  mysql-data:
