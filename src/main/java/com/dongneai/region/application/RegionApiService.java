@@ -4,6 +4,8 @@ import com.dongneai.region.api.RegionApi;
 import com.dongneai.region.domain.Region;
 import com.dongneai.region.domain.RegionErrorCode;
 import com.dongneai.region.domain.RegionRepository;
+import com.dongneai.region.domain.UserRegionId;
+import com.dongneai.region.domain.UserRegionRepository;
 import com.dongneai.shared.exception.ApiException;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class RegionApiService implements RegionApi {
 
     private final RegionRepository regionRepository;
+    private final UserRegionRepository userRegionRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -24,6 +27,14 @@ public class RegionApiService implements RegionApi {
                 .isPresent();
         if (!ok) {
             throw new ApiException(RegionErrorCode.REGION_NOT_FOUND);
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public void requireUserRegion(Long userId, Long regionId) {
+        if (!userRegionRepository.existsById(new UserRegionId(userId, regionId))) {
+            throw new ApiException(RegionErrorCode.NOT_MY_REGION);
         }
     }
 

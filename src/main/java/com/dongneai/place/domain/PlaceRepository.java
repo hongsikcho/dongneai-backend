@@ -22,4 +22,11 @@ public interface PlaceRepository extends JpaRepository<Place, Long> {
             + "where p.id = :placeId")
     int applyReviewChange(@Param("placeId") Long placeId, @Param("countDelta") int countDelta,
                           @Param("ratingDelta") int ratingDelta);
+
+    @Modifying(flushAutomatically = true)
+    @Query("update Place p set p.postCount = p.postCount + :countDelta where p.id = :placeId")
+    int applyPostChange(@Param("placeId") Long placeId, @Param("countDelta") int countDelta);
+
+    @Query("select p.id from Place p where p.regionId = :regionId and p.status = com.dongneai.place.domain.PlaceStatus.VISIBLE")
+    List<Long> findVisibleIdsByRegionId(@Param("regionId") Long regionId);
 }

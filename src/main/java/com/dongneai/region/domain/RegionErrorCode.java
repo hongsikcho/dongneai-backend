@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 public enum RegionErrorCode implements ErrorCode {
 
     INVALID_REGION_SELECTION(HttpStatus.BAD_REQUEST, "동네는 1~3개, 기본 동네는 1개만 선택할 수 있습니다."),
+    NOT_MY_REGION(HttpStatus.FORBIDDEN, "관심 동네로 설정한 동네에만 글을 쓸 수 있어요."),
     REGION_NOT_FOUND(HttpStatus.NOT_FOUND, "지역을 찾을 수 없습니다.");
 
     private final HttpStatus status;

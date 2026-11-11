@@ -44,3 +44,16 @@ INSERT IGNORE INTO review_amenity_checks (review_id, amenity, value)
 VALUES (9001, 'PARKING', 'YES'), (9001, 'STROLLER', 'YES'),
        (9002, 'PARKING', 'YES'),
        (9003, 'NURSING_ROOM', 'YES'), (9003, 'DIAPER_TABLE', 'NO');
+
+-- 피드 글·댓글 (가상 데이터). 행복동(3)
+INSERT IGNORE INTO posts (id, user_id, region_id, category, place_id, title, content, age_group, status, reaction_count, comment_count, created_at, updated_at)
+VALUES (9001, 9001, 3, 'QUESTION', 1, '숲속 실내놀이터 주말에 많이 붐비나요?', '토요일 오전에 18개월 아이랑 가 보려는데 대기가 있는지 궁금해요.', 'AGE_1_2', 'VISIBLE', 1, 2, NOW(6) - INTERVAL 2 HOUR, NOW(6) - INTERVAL 2 HOUR),
+       (9002, 9002, 3, 'TIP', NULL, '행복동 소아과 야간 진료 정리', '평일 저녁 8시까지 하는 곳은 햇살 소아청소년과예요. 토요일은 오후 1시까지.', NULL, 'VISIBLE', 3, 0, NOW(6) - INTERVAL 1 DAY, NOW(6) - INTERVAL 1 DAY),
+       (9003, 9003, 3, 'EVENT', NULL, '주민센터 아기 오감놀이 신청 받아요', '이번 달 셋째 주 화요일 오전, 0~12개월 대상이에요. 주민센터 2층에서 선착순 신청.', 'AGE_0_1', 'VISIBLE', 0, 0, NOW(6) - INTERVAL 3 DAY, NOW(6) - INTERVAL 3 DAY);
+
+INSERT IGNORE INTO comments (id, post_id, user_id, parent_id, content, status, created_at, updated_at)
+VALUES (9001, 9001, 9003, NULL, '오픈 시간 맞춰 가면 대기 없었어요!', 'VISIBLE', NOW(6) - INTERVAL 1 HOUR, NOW(6) - INTERVAL 1 HOUR),
+       (9002, 9001, 9001, 9001, '감사해요 일찍 가 볼게요 :)', 'VISIBLE', NOW(6) - INTERVAL 30 MINUTE, NOW(6) - INTERVAL 30 MINUTE);
+
+INSERT IGNORE INTO reactions (user_id, target_type, target_id, type, created_at)
+VALUES (9002, 'POST', 9001, 'LIKE', NOW(6));

@@ -8,6 +8,8 @@ import com.dongneai.place.domain.PlaceRepository;
 import com.dongneai.shared.code.Amenity;
 import com.dongneai.shared.exception.ApiException;
 import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -38,6 +40,30 @@ public class PlaceApiService implements PlaceApi {
             return;
         }
         placeRepository.applyReviewChange(placeId, countDelta, ratingDelta);
+    }
+
+    @Override
+    @Transactional
+    public void applyPostChange(Long placeId, int countDelta) {
+        if (countDelta != 0) {
+            placeRepository.applyPostChange(placeId, countDelta);
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Map<Long, PlaceRef> findPlaces(Collection<Long> placeIds) {
+        if (placeIds.isEmpty()) {
+            return Map.of();
+        }
+        return placeRepository.findAllById(placeIds).stream()
+                .collect(Collectors.toMap(p -> p.getId(), p -> new PlaceRef(p.getId(), p.getName(), p.getCategory().name())));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Long> findVisiblePlaceIds(Long regionId) {
+        return placeRepository.findVisibleIdsByRegionId(regionId);
     }
 
     @Override

@@ -7,6 +7,8 @@ import com.dongneai.review.domain.ReviewStatus;
 import com.dongneai.shared.code.AgeGroup;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -32,6 +34,21 @@ public class ReviewQueryRepository {
                 .where(where)
                 .orderBy(review.id.desc())
                 .limit(size + 1L)
+                .fetch();
+    }
+
+    /** 여러 장소의 공개 후기, 작성 시각 최신순 (피드 카드용). */
+    public List<Review> findRecentVisibleByPlaces(Collection<Long> placeIds, LocalDateTime before, int limit) {
+        BooleanBuilder where = new BooleanBuilder()
+                .and(review.placeId.in(placeIds))
+                .and(review.status.eq(ReviewStatus.VISIBLE));
+        if (before != null) {
+            where.and(review.createdAt.lt(before));
+        }
+        return queryFactory.selectFrom(review)
+                .where(where)
+                .orderBy(review.createdAt.desc(), review.id.desc())
+                .limit(limit)
                 .fetch();
     }
 }
