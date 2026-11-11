@@ -16,16 +16,16 @@ repositories {
     mavenCentral()
 }
 
-dependencyManagement {
-    imports {
-        mavenBom "org.springframework.modulith:spring-modulith-bom:${springModulithVersion}"
-    }
-}
-
 ext {
     querydslVersion = '6.10.1'
     jjwtVersion = '0.12.6'
     springModulithVersion = '1.4.1'
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.modulith:spring-modulith-bom:${springModulithVersion}"
+    }
 }
 
 dependencies {
