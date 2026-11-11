@@ -1,4 +1,4 @@
-package com.dongneai.place.domain;
+package com.dongneai.shared.code;
 
 public enum AmenityStatus {
     YES, NO, UNKNOWN

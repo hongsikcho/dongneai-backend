@@ -69,6 +69,10 @@ public class Place extends BaseTimeEntity {
     @Column(name = "review_count", nullable = false)
     private int reviewCount;
 
+    /** 공개 후기 별점 합계. 평균은 ratingSum / reviewCount. */
+    @Column(name = "rating_sum", nullable = false)
+    private int ratingSum;
+
     @Column(name = "post_count", nullable = false)
     private int postCount;
 
@@ -107,5 +111,13 @@ public class Place extends BaseTimeEntity {
 
     public boolean isVisible() {
         return status == PlaceStatus.VISIBLE;
+    }
+
+    /** 별점 평균 (소수 첫째 자리). 후기가 없으면 null. */
+    public Double ratingAverage() {
+        if (reviewCount <= 0) {
+            return null;
+        }
+        return Math.round(ratingSum * 10.0 / reviewCount) / 10.0;
     }
 }

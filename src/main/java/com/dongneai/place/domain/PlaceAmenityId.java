@@ -1,5 +1,6 @@
 package com.dongneai.place.domain;
 
+import com.dongneai.shared.code.Amenity;
 import java.io.Serializable;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;

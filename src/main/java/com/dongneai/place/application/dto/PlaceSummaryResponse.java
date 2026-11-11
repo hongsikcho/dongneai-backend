@@ -1,8 +1,8 @@
 package com.dongneai.place.application.dto;
 
-import com.dongneai.place.domain.Amenity;
 import com.dongneai.place.domain.Place;
 import com.dongneai.place.domain.PlaceCategory;
+import com.dongneai.shared.code.Amenity;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -13,11 +13,12 @@ public record PlaceSummaryResponse(
         PlaceCategory category,
         String address,
         int reviewCount,
+        Double ratingAvg,
         List<Amenity> amenities,
         LocalDate verifiedAt
 ) {
     public static PlaceSummaryResponse of(Place place, List<Amenity> confirmedAmenities) {
         return new PlaceSummaryResponse(place.getId(), place.getName(), place.getCategory(), place.getAddress(),
-                place.getReviewCount(), confirmedAmenities, place.getVerifiedAt());
+                place.getReviewCount(), place.ratingAverage(), confirmedAmenities, place.getVerifiedAt());
     }
 }

@@ -3,13 +3,13 @@ package com.dongneai.place.infrastructure;
 import static com.dongneai.place.domain.QPlace.place;
 import static com.dongneai.place.domain.QPlaceAmenity.placeAmenity;
 
-import com.dongneai.place.domain.Amenity;
-import com.dongneai.place.domain.AmenityStatus;
 import com.dongneai.place.domain.Place;
 import com.dongneai.place.domain.PlaceCursor;
 import com.dongneai.place.domain.PlaceSearchCondition;
 import com.dongneai.place.domain.PlaceSort;
 import com.dongneai.place.domain.PlaceStatus;
+import com.dongneai.shared.code.Amenity;
+import com.dongneai.shared.code.AmenityStatus;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.jpa.JPAExpressions;
