@@ -1,7 +1,7 @@
 package com.dongneai.member.domain;
 
-import com.dongneai.common.code.AgeGroup;
-import com.dongneai.common.entity.BaseTimeEntity;
+import com.dongneai.shared.code.AgeGroup;
+import com.dongneai.shared.entity.BaseTimeEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

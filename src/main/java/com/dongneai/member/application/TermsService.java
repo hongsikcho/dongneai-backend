@@ -1,16 +1,16 @@
 package com.dongneai.member.application;
 
-import com.dongneai.common.exception.ApiException;
-import com.dongneai.common.exception.ErrorCode;
+import com.dongneai.member.application.dto.AgreementRequest;
+import com.dongneai.member.application.dto.MeResponse;
+import com.dongneai.member.application.dto.TermsResponse;
+import com.dongneai.member.domain.MemberErrorCode;
 import com.dongneai.member.domain.OnboardingStep;
 import com.dongneai.member.domain.TermsCode;
 import com.dongneai.member.domain.User;
 import com.dongneai.member.domain.UserAgreement;
 import com.dongneai.member.domain.UserAgreementRepository;
 import com.dongneai.member.domain.UserRepository;
-import com.dongneai.member.dto.AgreementRequest;
-import com.dongneai.member.dto.MeResponse;
-import com.dongneai.member.dto.TermsResponse;
+import com.dongneai.shared.exception.ApiException;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -34,7 +34,7 @@ public class TermsService {
     /** AUTH-03: 약관 동의 저장. 필수 약관 미동의 시 400. TERMS 단계면 PROFILE로 진행. */
     @Transactional
     public MeResponse agree(Long userId, AgreementRequest request) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
+        User user = userRepository.findById(userId).orElseThrow(() -> new ApiException(MemberErrorCode.USER_NOT_FOUND));
 
         Map<TermsCode, Boolean> answers = request.agreements().stream()
                 .collect(Collectors.toMap(AgreementRequest.Item::code, AgreementRequest.Item::agreed, (a, b) -> b));
@@ -42,7 +42,7 @@ public class TermsService {
                 .filter(TermsCode::isRequired)
                 .anyMatch(code -> !answers.getOrDefault(code, false));
         if (requiredMissing) {
-            throw new ApiException(ErrorCode.REQUIRED_TERMS_NOT_AGREED);
+            throw new ApiException(MemberErrorCode.REQUIRED_TERMS_NOT_AGREED);
         }
 
         LocalDateTime now = LocalDateTime.now();

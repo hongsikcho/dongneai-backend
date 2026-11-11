@@ -1,14 +1,14 @@
 package com.dongneai.member.application;
 
-import com.dongneai.common.exception.ApiException;
-import com.dongneai.common.exception.ErrorCode;
+import com.dongneai.member.application.dto.MeResponse;
+import com.dongneai.member.application.dto.NicknameCheckResponse;
+import com.dongneai.member.application.dto.UpdateProfileRequest;
+import com.dongneai.member.domain.MemberErrorCode;
 import com.dongneai.member.domain.NicknamePolicy;
 import com.dongneai.member.domain.OnboardingStep;
 import com.dongneai.member.domain.User;
 import com.dongneai.member.domain.UserRepository;
-import com.dongneai.member.dto.MeResponse;
-import com.dongneai.member.dto.NicknameCheckResponse;
-import com.dongneai.member.dto.UpdateProfileRequest;
+import com.dongneai.shared.exception.ApiException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -43,7 +43,7 @@ public class ProfileService {
     public MeResponse updateProfile(Long userId, UpdateProfileRequest request) {
         User user = getUser(userId);
         if (!user.hasReached(OnboardingStep.PROFILE)) {
-            throw new ApiException(ErrorCode.ONBOARDING_REQUIRED);
+            throw new ApiException(MemberErrorCode.ONBOARDING_REQUIRED);
         }
 
         String nickname = request.nickname() == null ? user.getNickname() : request.nickname().strip();
@@ -53,7 +53,7 @@ public class ProfileService {
             validateNickname(userId, nickname);
         }
         if (user.getOnboardingStep() == OnboardingStep.PROFILE && (nickname == null || ageGroup == null)) {
-            throw new ApiException(ErrorCode.PROFILE_INCOMPLETE);
+            throw new ApiException(MemberErrorCode.PROFILE_INCOMPLETE);
         }
 
         user.updateProfile(nickname, ageGroup);
@@ -61,24 +61,24 @@ public class ProfileService {
         try {
             userRepository.flush(); // 동시 가입으로 인한 닉네임 UNIQUE 위반을 여기서 잡는다
         } catch (DataIntegrityViolationException e) {
-            throw new ApiException(ErrorCode.NICKNAME_DUPLICATED);
+            throw new ApiException(MemberErrorCode.NICKNAME_DUPLICATED);
         }
         return MeResponse.from(user);
     }
 
     private void validateNickname(Long userId, String nickname) {
         switch (NicknamePolicy.check(nickname)) {
-            case INVALID_FORMAT -> throw new ApiException(ErrorCode.INVALID_NICKNAME);
-            case FORBIDDEN_WORD -> throw new ApiException(ErrorCode.FORBIDDEN_NICKNAME);
+            case INVALID_FORMAT -> throw new ApiException(MemberErrorCode.INVALID_NICKNAME);
+            case FORBIDDEN_WORD -> throw new ApiException(MemberErrorCode.FORBIDDEN_NICKNAME);
             case OK -> {
                 if (userRepository.existsByNicknameAndIdNot(nickname, userId)) {
-                    throw new ApiException(ErrorCode.NICKNAME_DUPLICATED);
+                    throw new ApiException(MemberErrorCode.NICKNAME_DUPLICATED);
                 }
             }
         }
     }
 
     private User getUser(Long userId) {
-        return userRepository.findById(userId).orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
+        return userRepository.findById(userId).orElseThrow(() -> new ApiException(MemberErrorCode.USER_NOT_FOUND));
     }
 }
