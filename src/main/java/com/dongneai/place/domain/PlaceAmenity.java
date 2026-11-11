@@ -15,8 +15,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
- * 장소 편의시설 집계. 후기 체크 결과를 모아 갱신하고, 시딩 단계에서는 운영자가 직접 입력한다.
- * 행이 없는 편의시설은 UNKNOWN으로 본다.
+ * 장소 편의시설. 후기 체크(사람별 최신 후기)의 있음·없음 중 많은 쪽으로 판정하고,
+ * 동률이거나 체크가 없으면 운영자 입력값, 그것도 없으면 UNKNOWN.
+ * confirmedCount는 판정 결과와 같은 쪽으로 체크한 사람 수.
  */
 @Getter
 @Entity
@@ -35,8 +36,18 @@ public class PlaceAmenity {
     private Amenity amenity;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "admin_status", length = 10)
+    private AmenityStatus adminStatus;
+
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 10)
     private AmenityStatus status;
+
+    @Column(name = "yes_count", nullable = false)
+    private int yesCount;
+
+    @Column(name = "no_count", nullable = false)
+    private int noCount;
 
     @Column(name = "confirmed_count", nullable = false)
     private int confirmedCount;
@@ -44,17 +55,55 @@ public class PlaceAmenity {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    public PlaceAmenity(Long placeId, Amenity amenity, AmenityStatus status, int confirmedCount, LocalDateTime now) {
+    private PlaceAmenity(Long placeId, Amenity amenity, LocalDateTime now) {
         this.placeId = placeId;
         this.amenity = amenity;
-        this.status = status;
-        this.confirmedCount = confirmedCount;
         this.updatedAt = now;
+        recalculate();
     }
 
-    /** 운영자 입력. 후기 집계 수(confirmedCount)는 건드리지 않는다. */
+    /** 운영자 입력으로 만든다. */
+    public static PlaceAmenity byAdmin(Long placeId, Amenity amenity, AmenityStatus status, LocalDateTime now) {
+        PlaceAmenity row = new PlaceAmenity(placeId, amenity, now);
+        row.setByAdmin(status, now);
+        return row;
+    }
+
+    /** 후기 체크 집계로 만든다 (운영자 입력 없음). */
+    public static PlaceAmenity byVotes(Long placeId, Amenity amenity, int yes, int no, LocalDateTime now) {
+        PlaceAmenity row = new PlaceAmenity(placeId, amenity, now);
+        row.applyVotes(yes, no, now);
+        return row;
+    }
+
     public void setByAdmin(AmenityStatus status, LocalDateTime now) {
-        this.status = status;
+        this.adminStatus = status;
         this.updatedAt = now;
+        recalculate();
+    }
+
+    public void applyVotes(int yes, int no, LocalDateTime now) {
+        if (yes == yesCount && no == noCount) {
+            return;
+        }
+        this.yesCount = Math.max(yes, 0);
+        this.noCount = Math.max(no, 0);
+        this.updatedAt = now;
+        recalculate();
+    }
+
+    private void recalculate() {
+        if (yesCount > noCount) {
+            status = AmenityStatus.YES;
+        } else if (noCount > yesCount) {
+            status = AmenityStatus.NO;
+        } else {
+            status = adminStatus == null ? AmenityStatus.UNKNOWN : adminStatus;
+        }
+        confirmedCount = switch (status) {
+            case YES -> yesCount;
+            case NO -> noCount;
+            case UNKNOWN -> 0;
+        };
     }
 }

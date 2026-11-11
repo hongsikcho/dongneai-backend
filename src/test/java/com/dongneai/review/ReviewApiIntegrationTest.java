@@ -1,6 +1,7 @@
 package com.dongneai.review;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.contains;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -138,6 +139,32 @@ class ReviewApiIntegrationTest {
     }
 
     @Test
+    void 후기_체크가_장소_편의시설_필터에_반영된다() throws Exception {
+        // 장소 5에는 운영자가 입력한 유모차 정보가 없다
+        assertThat(placeIdsWithAmenity("STROLLER")).doesNotContain(PLACE_ID);
+
+        String response = mockMvc.perform(auth(post("/api/v1/places/" + PLACE_ID + "/reviews"), writer)
+                        .content(objectMapper.writeValueAsString(Map.of(
+                                "visitedOn", thisMonth,
+                                "childAgeGroup", "AGE_1_2",
+                                "rating", 5,
+                                "content", "유모차 끌고 들어가기 편했어요. 엘리베이터도 있어요.",
+                                "amenities", Map.of("STROLLER", "YES")))))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        long reviewId = json(response).get("id").asLong();
+
+        assertThat(placeIdsWithAmenity("STROLLER")).contains(PLACE_ID);
+        mockMvc.perform(auth(get("/api/v1/places/" + PLACE_ID), writer))
+                .andExpect(jsonPath("$.amenities[?(@.amenity == 'STROLLER')].status").value(contains("YES")))
+                .andExpect(jsonPath("$.amenities[?(@.amenity == 'STROLLER')].confirmedCount").value(contains(1)));
+
+        // 후기를 지우면 다시 빠진다
+        mockMvc.perform(auth(delete("/api/v1/reviews/" + reviewId), writer)).andExpect(status().isNoContent());
+        assertThat(placeIdsWithAmenity("STROLLER")).doesNotContain(PLACE_ID);
+    }
+
+    @Test
     void 없는_장소에는_후기를_쓸_수_없다() throws Exception {
         mockMvc.perform(auth(post("/api/v1/places/999999/reviews"), writer)
                         .content(body(thisMonth, 3, "존재하지 않는 장소에 쓰는 후기입니다.")))
@@ -153,6 +180,18 @@ class ReviewApiIntegrationTest {
         long reviewId = json(response).get("id").asLong();
         created.add(new String[] {token, String.valueOf(reviewId)});
         return reviewId;
+    }
+
+    private List<Long> placeIdsWithAmenity(String amenity) throws Exception {
+        String response = mockMvc.perform(auth(get("/api/v1/places"), writer)
+                        .param("regionId", "3")
+                        .param("amenities", amenity)
+                        .param("size", "50"))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        List<Long> ids = new ArrayList<>();
+        json(response).get("items").forEach(item -> ids.add(item.get("id").asLong()));
+        return ids;
     }
 
     private int reviewCount() throws Exception {

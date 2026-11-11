@@ -2,19 +2,24 @@ package com.dongneai.review.application;
 
 import com.dongneai.member.api.MemberApi;
 import com.dongneai.place.api.PlaceApi;
+import com.dongneai.place.api.PlaceApi.AmenityVote;
 import com.dongneai.review.application.dto.ReviewRequest;
 import com.dongneai.review.application.dto.ReviewResponse;
+import com.dongneai.review.domain.AmenityTally;
 import com.dongneai.review.domain.Review;
 import com.dongneai.review.domain.ReviewContent;
 import com.dongneai.review.domain.ReviewErrorCode;
 import com.dongneai.review.domain.ReviewRepository;
+import com.dongneai.review.domain.ReviewStatus;
 import com.dongneai.review.infrastructure.ReviewQueryRepository;
 import com.dongneai.shared.code.AgeGroup;
+import com.dongneai.shared.code.Amenity;
 import com.dongneai.shared.exception.ApiException;
 import com.dongneai.shared.exception.CommonErrorCode;
 import com.dongneai.shared.response.CursorPage;
 import java.time.YearMonth;
 import java.time.ZoneId;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +27,10 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/** PLACE-02 후기 목록, PLACE-03 후기 작성·수정·삭제. */
+/**
+ * PLACE-02 후기 목록, PLACE-03 후기 작성·수정·삭제.
+ * 작성·수정·삭제 후에는 장소의 후기 수·별점 합계와 편의시설(이용 조건 체크 집계)을 갱신한다.
+ */
 @Service
 @RequiredArgsConstructor
 public class ReviewService {
@@ -72,6 +80,7 @@ public class ReviewService {
         saveAndFlush(review);
 
         placeApi.applyReviewChange(placeId, 1, review.getRating());
+        syncAmenities(placeId);
         return toResponse(review, userId);
     }
 
@@ -97,6 +106,7 @@ public class ReviewService {
         saveAndFlush(review);
 
         placeApi.applyReviewChange(review.getPlaceId(), 0, ratingDelta);
+        syncAmenities(review.getPlaceId());
         return toResponse(review, userId);
     }
 
@@ -106,6 +116,16 @@ public class ReviewService {
         review.delete();
         reviewRepository.flush();
         placeApi.applyReviewChange(review.getPlaceId(), -1, -review.getRating());
+        syncAmenities(review.getPlaceId());
+    }
+
+    /** 장소의 이용 조건 체크를 다시 집계해 장소 편의시설에 반영한다. */
+    private void syncAmenities(Long placeId) {
+        Map<Amenity, AmenityTally.Count> tally =
+                AmenityTally.of(reviewRepository.findByPlaceIdAndStatus(placeId, ReviewStatus.VISIBLE));
+        Map<Amenity, AmenityVote> votes = new EnumMap<>(Amenity.class);
+        tally.forEach((amenity, count) -> votes.put(amenity, new AmenityVote(count.yes(), count.no())));
+        placeApi.applyAmenityVotes(placeId, votes);
     }
 
     private Review getOwned(Long userId, Long reviewId) {

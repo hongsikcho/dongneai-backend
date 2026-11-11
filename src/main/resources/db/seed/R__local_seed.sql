@@ -14,13 +14,14 @@ VALUES (1, 3, '숲속 실내놀이터', 'KIDS_CAFE', '테스트시 테스트구 
        (5, 3, '행복동 주민센터 수유실', 'NURSING_ROOM', '테스트시 테스트구 행복로 1 1층', 'ADMIN', 'VISIBLE', NULL, 0, 0, NOW(6), NOW(6)),
        (6, 4, '별빛 문화센터', 'CULTURE_CENTER', '테스트시 테스트구 햇살로 5', 'ADMIN', 'VISIBLE', '2026-10-01', 12, 1, NOW(6), NOW(6));
 
-INSERT IGNORE INTO place_amenities (place_id, amenity, status, confirmed_count, updated_at)
-VALUES (1, 'PARKING', 'YES', 18, NOW(6)), (1, 'STROLLER', 'YES', 15, NOW(6)), (1, 'NURSING_ROOM', 'YES', 12, NOW(6)),
-       (2, 'STROLLER', 'YES', 7, NOW(6)), (2, 'DIAPER_TABLE', 'YES', 5, NOW(6)), (2, 'PARKING', 'NO', 3, NOW(6)),
-       (3, 'PARKING', 'YES', 20, NOW(6)), (3, 'STROLLER', 'YES', 9, NOW(6)),
-       (4, 'STROLLER', 'YES', 2, NOW(6)),
-       (5, 'NURSING_ROOM', 'YES', 0, NOW(6)), (5, 'DIAPER_TABLE', 'YES', 0, NOW(6)),
-       (6, 'PARKING', 'YES', 6, NOW(6));
+-- 운영자 입력값(admin_status). 후기 체크가 생기면 status·confirmed_count는 집계로 다시 계산된다
+INSERT IGNORE INTO place_amenities (place_id, amenity, admin_status, status, confirmed_count, updated_at)
+VALUES (1, 'PARKING', 'YES', 'YES', 18, NOW(6)), (1, 'STROLLER', 'YES', 'YES', 15, NOW(6)), (1, 'NURSING_ROOM', 'YES', 'YES', 12, NOW(6)),
+       (2, 'STROLLER', 'YES', 'YES', 7, NOW(6)), (2, 'DIAPER_TABLE', 'YES', 'YES', 5, NOW(6)), (2, 'PARKING', 'NO', 'NO', 3, NOW(6)),
+       (3, 'PARKING', 'YES', 'YES', 20, NOW(6)), (3, 'STROLLER', 'YES', 'YES', 9, NOW(6)),
+       (4, 'STROLLER', 'YES', 'YES', 2, NOW(6)),
+       (5, 'NURSING_ROOM', 'YES', 'YES', 0, NOW(6)), (5, 'DIAPER_TABLE', 'YES', 'YES', 0, NOW(6)),
+       (6, 'PARKING', 'YES', 'YES', 6, NOW(6));
 
 -- 별점 합계 (가상 데이터). 위 review_count는 목록 정렬 테스트용 가상 값이라 실제 후기 행 수와 다르다.
 UPDATE places

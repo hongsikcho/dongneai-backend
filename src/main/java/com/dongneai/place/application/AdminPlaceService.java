@@ -95,7 +95,7 @@ public class AdminPlaceService {
         amenities.forEach((amenity, status) -> amenityRepository.findById(new PlaceAmenityId(placeId, amenity))
                 .ifPresentOrElse(
                         row -> row.setByAdmin(status, now),
-                        () -> amenityRepository.save(new PlaceAmenity(placeId, amenity, status, 0, now))));
+                        () -> amenityRepository.save(PlaceAmenity.byAdmin(placeId, amenity, status, now))));
     }
 
     private Place get(Long placeId) {
