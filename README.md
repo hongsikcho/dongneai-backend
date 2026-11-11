@@ -50,7 +50,8 @@ DDD 모듈형 모놀리스. 배포 단위는 하나이고, 최상위 패키지 �
 | `member` | 회원, 인증, 약관, 프로필, 온보딩 단계, 로컬 개발용 토큰 발급 |
 | `region` | 지역 검색, 관심 지역 |
 | `place` | 장소 목록·상세·등록, 편의시설 집계, 카카오 장소 검색, 관리자 시딩 |
-| `review`, `feed`, `moderation`, `media`, `admin` | 예정 |
+| `review` | 장소 후기 작성·수정·삭제·목록, 별점 (장소 후기 수·별점 합계는 `PlaceApi`로 갱신) |
+| `feed`, `moderation`, `media`, `admin` | 예정 |
 | `shared` | 공통 커널 (BaseTimeEntity, ApiException·ErrorCode, CursorPage, AgeGroup, 코드표) |
 | `security`, `config` | JWT 인증, JPA·QueryDSL 설정 |
 

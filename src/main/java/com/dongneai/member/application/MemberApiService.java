@@ -5,7 +5,11 @@ import com.dongneai.member.domain.MemberErrorCode;
 import com.dongneai.member.domain.OnboardingStep;
 import com.dongneai.member.domain.User;
 import com.dongneai.member.domain.UserRepository;
+import com.dongneai.member.domain.UserStatus;
 import com.dongneai.shared.exception.ApiException;
+import java.util.Collection;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,5 +35,16 @@ public class MemberApiService implements MemberApi {
     public void completeRegionSetup(Long userId) {
         // 호출하는 쪽에서 벌크 삭제로 영속성 컨텍스트가 비워졌을 수 있으므로 회원을 다시 읽어 단계를 갱신한다
         userRepository.findById(userId).ifPresent(u -> u.completeOnboardingStep(OnboardingStep.REGION));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Map<Long, String> findNicknames(Collection<Long> userIds) {
+        if (userIds.isEmpty()) {
+            return Map.of();
+        }
+        return userRepository.findAllById(userIds).stream()
+                .filter(u -> u.getNickname() != null && u.getStatus() != UserStatus.WITHDRAWN)
+                .collect(Collectors.toMap(User::getId, User::getNickname));
     }
 }

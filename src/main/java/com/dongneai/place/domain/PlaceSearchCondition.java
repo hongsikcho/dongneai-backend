@@ -1,5 +1,6 @@
 package com.dongneai.place.domain;
 
+import com.dongneai.shared.code.Amenity;
 import java.util.Set;
 
 /**

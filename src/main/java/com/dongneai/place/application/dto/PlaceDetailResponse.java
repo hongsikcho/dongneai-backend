@@ -20,6 +20,7 @@ public record PlaceDetailResponse(
         PlaceStatus status,
         LocalDate verifiedAt,
         int reviewCount,
+        Double ratingAvg,
         int postCount,
         List<AmenityStatusResponse> amenities
 ) {

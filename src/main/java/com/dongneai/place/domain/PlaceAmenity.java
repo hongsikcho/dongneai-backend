@@ -1,5 +1,7 @@
 package com.dongneai.place.domain;
 
+import com.dongneai.shared.code.Amenity;
+import com.dongneai.shared.code.AmenityStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

@@ -1,9 +1,9 @@
 package com.dongneai.place.application.dto;
 
-import com.dongneai.place.domain.Amenity;
-import com.dongneai.place.domain.AmenityStatus;
 import com.dongneai.place.domain.PlaceCategory;
 import com.dongneai.place.domain.PlaceStatus;
+import com.dongneai.shared.code.Amenity;
+import com.dongneai.shared.code.AmenityStatus;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;

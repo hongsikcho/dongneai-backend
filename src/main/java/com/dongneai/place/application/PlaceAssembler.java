@@ -3,14 +3,14 @@ package com.dongneai.place.application;
 import com.dongneai.place.application.dto.AmenityStatusResponse;
 import com.dongneai.place.application.dto.PlaceDetailResponse;
 import com.dongneai.place.application.dto.PlaceSummaryResponse;
-import com.dongneai.place.domain.Amenity;
-import com.dongneai.place.domain.AmenityStatus;
 import com.dongneai.place.domain.Place;
 import com.dongneai.place.domain.PlaceAmenity;
 import com.dongneai.place.domain.PlaceAmenityRepository;
 import com.dongneai.place.domain.PlaceCursor;
 import com.dongneai.place.domain.PlaceSort;
 import com.dongneai.region.api.RegionApi;
+import com.dongneai.shared.code.Amenity;
+import com.dongneai.shared.code.AmenityStatus;
 import com.dongneai.shared.response.CursorPage;
 import java.util.Arrays;
 import java.util.List;
@@ -57,7 +57,7 @@ class PlaceAssembler {
                 .orElse(null);
         return new PlaceDetailResponse(place.getId(), place.getName(), place.getCategory(), regionRef,
                 place.getAddress(), place.getLat(), place.getLng(), place.getKakaoPlaceId(), place.getSource(),
-                place.getStatus(), place.getVerifiedAt(), place.getReviewCount(), place.getPostCount(), amenities);
+                place.getStatus(), place.getVerifiedAt(), place.getReviewCount(), place.ratingAverage(), place.getPostCount(), amenities);
     }
 
     private static List<Amenity> sorted(List<Amenity> amenities) {

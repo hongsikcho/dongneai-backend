@@ -1,7 +1,7 @@
 package com.dongneai.place.application;
 
-import com.dongneai.place.domain.Amenity;
 import com.dongneai.place.domain.PlaceCategory;
+import com.dongneai.shared.code.Amenity;
 import com.dongneai.shared.code.CodeTable;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
