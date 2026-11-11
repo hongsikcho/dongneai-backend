@@ -1,6 +1,6 @@
 package com.dongneai.security;
 
-import com.dongneai.common.exception.ErrorCode;
+import com.dongneai.shared.exception.CommonErrorCode;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
@@ -38,9 +38,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         user, null, List.of(new SimpleGrantedAuthority("ROLE_" + user.role())));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             } catch (ExpiredJwtException e) {
-                request.setAttribute(AUTH_ERROR_ATTRIBUTE, ErrorCode.TOKEN_EXPIRED);
+                request.setAttribute(AUTH_ERROR_ATTRIBUTE, CommonErrorCode.TOKEN_EXPIRED);
             } catch (JwtException | IllegalArgumentException e) {
-                request.setAttribute(AUTH_ERROR_ATTRIBUTE, ErrorCode.UNAUTHORIZED);
+                request.setAttribute(AUTH_ERROR_ATTRIBUTE, CommonErrorCode.UNAUTHORIZED);
             }
         }
         chain.doFilter(request, response);

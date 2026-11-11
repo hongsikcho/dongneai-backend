@@ -1,7 +1,7 @@
 package com.dongneai.place.domain;
 
-import com.dongneai.common.exception.ApiException;
-import com.dongneai.common.exception.ErrorCode;
+import com.dongneai.shared.exception.ApiException;
+import com.dongneai.shared.exception.CommonErrorCode;
 
 /**
  * 장소 목록 커서. LATEST는 "id", REVIEWS는 "reviewCount_id" 형태의 문자열로 주고받는다.
@@ -19,7 +19,7 @@ public record PlaceCursor(int reviewCount, long id) {
             }
             return new PlaceCursor(0, Long.parseLong(value));
         } catch (RuntimeException e) {
-            throw new ApiException(ErrorCode.INVALID_REQUEST, "cursor 값이 올바르지 않습니다.");
+            throw new ApiException(CommonErrorCode.INVALID_REQUEST, "cursor 값이 올바르지 않습니다.");
         }
     }
 

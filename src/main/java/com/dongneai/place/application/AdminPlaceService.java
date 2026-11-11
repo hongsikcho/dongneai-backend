@@ -1,21 +1,22 @@
 package com.dongneai.place.application;
 
-import com.dongneai.common.exception.ApiException;
-import com.dongneai.common.exception.ErrorCode;
-import com.dongneai.common.response.CursorPage;
+import com.dongneai.place.application.dto.AdminPlaceRequest;
+import com.dongneai.place.application.dto.PlaceDetailResponse;
+import com.dongneai.place.application.dto.PlaceSummaryResponse;
 import com.dongneai.place.domain.Amenity;
 import com.dongneai.place.domain.AmenityStatus;
 import com.dongneai.place.domain.Place;
 import com.dongneai.place.domain.PlaceAmenity;
 import com.dongneai.place.domain.PlaceAmenityId;
 import com.dongneai.place.domain.PlaceAmenityRepository;
-import com.dongneai.place.domain.PlaceQueryRepository;
+import com.dongneai.place.domain.PlaceErrorCode;
 import com.dongneai.place.domain.PlaceRepository;
 import com.dongneai.place.domain.PlaceSearchCondition;
 import com.dongneai.place.domain.PlaceSource;
-import com.dongneai.place.dto.AdminPlaceRequest;
-import com.dongneai.place.dto.PlaceDetailResponse;
-import com.dongneai.place.dto.PlaceSummaryResponse;
+import com.dongneai.place.infrastructure.PlaceQueryRepository;
+import com.dongneai.region.api.RegionApi;
+import com.dongneai.shared.exception.ApiException;
+import com.dongneai.shared.response.CursorPage;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -33,7 +34,7 @@ public class AdminPlaceService {
     private final PlaceQueryRepository placeQueryRepository;
     private final PlaceAmenityRepository amenityRepository;
     private final PlaceAssembler assembler;
-    private final RegionGuard regionGuard;
+    private final RegionApi regionApi;
     private final PlaceService placeService;
 
     @Transactional(readOnly = true)
@@ -48,7 +49,7 @@ public class AdminPlaceService {
 
     @Transactional
     public PlaceDetailResponse create(Long adminId, AdminPlaceRequest request) {
-        regionGuard.requireOpenDong(request.regionId());
+        regionApi.requireOpenDong(request.regionId());
         placeService.rejectDuplicate(request.kakaoPlaceId());
         Place place = placeRepository.save(Place.builder()
                 .regionId(request.regionId())
@@ -69,7 +70,7 @@ public class AdminPlaceService {
     @Transactional
     public PlaceDetailResponse update(Long placeId, AdminPlaceRequest request) {
         Place place = get(placeId);
-        regionGuard.requireOpenDong(request.regionId());
+        regionApi.requireOpenDong(request.regionId());
         String kakaoId = PlaceService.blankToNull(request.kakaoPlaceId());
         if (kakaoId != null && !Objects.equals(kakaoId, place.getKakaoPlaceId())) {
             placeService.rejectDuplicate(kakaoId);
@@ -98,6 +99,6 @@ public class AdminPlaceService {
     }
 
     private Place get(Long placeId) {
-        return placeRepository.findById(placeId).orElseThrow(() -> new ApiException(ErrorCode.PLACE_NOT_FOUND));
+        return placeRepository.findById(placeId).orElseThrow(() -> new ApiException(PlaceErrorCode.PLACE_NOT_FOUND));
     }
 }

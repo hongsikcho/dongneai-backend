@@ -1,7 +1,8 @@
 package com.dongneai.security;
 
-import com.dongneai.common.exception.ErrorCode;
-import com.dongneai.common.response.ErrorResponse;
+import com.dongneai.shared.exception.CommonErrorCode;
+import com.dongneai.shared.exception.ErrorCode;
+import com.dongneai.shared.response.ErrorResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -21,13 +22,13 @@ public class SecurityErrorHandlers {
     public AuthenticationEntryPoint entryPoint() {
         return (request, response, ex) -> {
             Object attr = request.getAttribute(JwtAuthenticationFilter.AUTH_ERROR_ATTRIBUTE);
-            ErrorCode code = attr instanceof ErrorCode ec ? ec : ErrorCode.UNAUTHORIZED;
+            ErrorCode code = attr instanceof ErrorCode ec ? ec : CommonErrorCode.UNAUTHORIZED;
             write(response, code);
         };
     }
 
     public AccessDeniedHandler accessDeniedHandler() {
-        return (request, response, ex) -> write(response, ErrorCode.FORBIDDEN);
+        return (request, response, ex) -> write(response, CommonErrorCode.FORBIDDEN);
     }
 
     private void write(HttpServletResponse response, ErrorCode code) throws IOException {

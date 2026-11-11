@@ -1,16 +1,14 @@
 package com.dongneai.region.application;
 
-import com.dongneai.common.exception.ApiException;
-import com.dongneai.common.exception.ErrorCode;
-import com.dongneai.member.domain.OnboardingStep;
-import com.dongneai.member.domain.User;
-import com.dongneai.member.domain.UserRepository;
+import com.dongneai.member.api.MemberApi;
+import com.dongneai.region.application.dto.UserRegionResponse;
+import com.dongneai.region.application.dto.UserRegionsRequest;
 import com.dongneai.region.domain.Region;
+import com.dongneai.region.domain.RegionErrorCode;
 import com.dongneai.region.domain.RegionRepository;
 import com.dongneai.region.domain.UserRegion;
 import com.dongneai.region.domain.UserRegionRepository;
-import com.dongneai.region.dto.UserRegionResponse;
-import com.dongneai.region.dto.UserRegionsRequest;
+import com.dongneai.shared.exception.ApiException;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
@@ -25,7 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class UserRegionService {
 
-    private final UserRepository userRepository;
+    private final MemberApi memberApi;
     private final RegionRepository regionRepository;
     private final UserRegionRepository userRegionRepository;
 
@@ -48,23 +46,20 @@ public class UserRegionService {
      */
     @Transactional
     public List<UserRegionResponse> replace(Long userId, UserRegionsRequest request) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
-        if (!user.hasReached(OnboardingStep.REGION)) {
-            throw new ApiException(ErrorCode.ONBOARDING_REQUIRED);
-        }
+        memberApi.requireRegionSetupAllowed(userId);
 
         List<UserRegionsRequest.Item> items = request.regions();
         List<Long> ids = items.stream().map(UserRegionsRequest.Item::regionId).distinct().toList();
         long primaryCount = items.stream().filter(UserRegionsRequest.Item::primary).count();
         if (ids.isEmpty() || ids.size() != items.size() || ids.size() > UserRegion.MAX_PER_USER || primaryCount != 1) {
-            throw new ApiException(ErrorCode.INVALID_REGION_SELECTION);
+            throw new ApiException(RegionErrorCode.INVALID_REGION_SELECTION);
         }
 
         List<Region> regions = regionRepository.findAllById(ids);
         boolean allSelectable = regions.size() == ids.size()
                 && regions.stream().allMatch(r -> r.isActive() && r.getLevel() == Region.LEVEL_DONG);
         if (!allSelectable) {
-            throw new ApiException(ErrorCode.REGION_NOT_FOUND);
+            throw new ApiException(RegionErrorCode.REGION_NOT_FOUND);
         }
 
         userRegionRepository.deleteAllByUserId(userId);
@@ -73,8 +68,7 @@ public class UserRegionService {
                 .map(item -> new UserRegion(userId, item.regionId(), item.primary(), now))
                 .toList());
 
-        // deleteAllByUserId가 영속성 컨텍스트를 비웠으므로 회원을 다시 읽어 단계를 갱신한다
-        userRepository.findById(userId).ifPresent(u -> u.completeOnboardingStep(OnboardingStep.REGION));
+        memberApi.completeRegionSetup(userId);
         return myRegions(userId);
     }
 }

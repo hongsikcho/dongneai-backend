@@ -1,4 +1,7 @@
 /**
- * admin 모듈. 화면 정의서·API 명세서의 해당 도메인을 이 패키지에 구현한다.
+ * 관리자 웹용 API 조합 (예정). 도메인 규칙은 각 컨텍스트에 두고 여기서는 조합만 한다.
+ *
+ * <p>구조: domain(애그리거트·리포지토리 인터페이스·에러 코드) → application(유스케이스·DTO·포트)
+ * → infrastructure(JPA·QueryDSL·외부 API) / presentation(컨트롤러). 다른 모듈은 admin.api 패키지만 참조한다.
  */
 package com.dongneai.admin;

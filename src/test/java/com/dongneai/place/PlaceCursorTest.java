@@ -3,9 +3,9 @@ package com.dongneai.place;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.dongneai.common.exception.ApiException;
 import com.dongneai.place.domain.PlaceCursor;
 import com.dongneai.place.domain.PlaceSort;
+import com.dongneai.shared.exception.ApiException;
 import org.junit.jupiter.api.Test;
 
 class PlaceCursorTest {

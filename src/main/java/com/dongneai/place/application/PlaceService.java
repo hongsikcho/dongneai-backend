@@ -1,18 +1,19 @@
 package com.dongneai.place.application;
 
-import com.dongneai.common.exception.ApiException;
-import com.dongneai.common.exception.ErrorCode;
-import com.dongneai.common.response.CursorPage;
+import com.dongneai.place.application.dto.CreatePlaceRequest;
+import com.dongneai.place.application.dto.ExternalPlaceResponse;
+import com.dongneai.place.application.dto.PlaceDetailResponse;
+import com.dongneai.place.application.dto.PlaceSummaryResponse;
+import com.dongneai.place.application.port.ExternalPlaceSearch;
 import com.dongneai.place.domain.Place;
-import com.dongneai.place.domain.PlaceQueryRepository;
+import com.dongneai.place.domain.PlaceErrorCode;
 import com.dongneai.place.domain.PlaceRepository;
 import com.dongneai.place.domain.PlaceSearchCondition;
 import com.dongneai.place.domain.PlaceSource;
-import com.dongneai.place.dto.CreatePlaceRequest;
-import com.dongneai.place.dto.ExternalPlaceResponse;
-import com.dongneai.place.dto.PlaceDetailResponse;
-import com.dongneai.place.dto.PlaceSummaryResponse;
-import com.dongneai.place.infra.KakaoLocalClient;
+import com.dongneai.place.infrastructure.PlaceQueryRepository;
+import com.dongneai.region.api.RegionApi;
+import com.dongneai.shared.exception.ApiException;
+import com.dongneai.shared.response.CursorPage;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
@@ -30,8 +31,8 @@ public class PlaceService {
     private final PlaceRepository placeRepository;
     private final PlaceQueryRepository placeQueryRepository;
     private final PlaceAssembler assembler;
-    private final RegionGuard regionGuard;
-    private final KakaoLocalClient kakaoLocalClient;
+    private final RegionApi regionApi;
+    private final ExternalPlaceSearch externalPlaceSearch;
 
     /** PLACE-01, MOD-01 */
     @Transactional(readOnly = true)
@@ -42,10 +43,10 @@ public class PlaceService {
     /** PLACE-02. 숨김·병합된 장소는 404 (병합된 경우 details에 대상 장소 ID). */
     @Transactional(readOnly = true)
     public PlaceDetailResponse detail(Long placeId) {
-        Place place = placeRepository.findById(placeId).orElseThrow(() -> new ApiException(ErrorCode.PLACE_NOT_FOUND));
+        Place place = placeRepository.findById(placeId).orElseThrow(() -> new ApiException(PlaceErrorCode.PLACE_NOT_FOUND));
         if (!place.isVisible()) {
             Map<String, Object> details = place.getMergedIntoId() == null ? null : Map.of("mergedIntoId", place.getMergedIntoId());
-            throw new ApiException(ErrorCode.PLACE_NOT_FOUND, ErrorCode.PLACE_NOT_FOUND.getMessage(), details);
+            throw new ApiException(PlaceErrorCode.PLACE_NOT_FOUND, PlaceErrorCode.PLACE_NOT_FOUND.getMessage(), details);
         }
         return assembler.toDetail(place);
     }
@@ -53,19 +54,19 @@ public class PlaceService {
     /** PLACE-04: 카카오 장소 검색. 이미 등록된 장소는 registeredPlaceId로 알려준다. */
     @Transactional(readOnly = true)
     public List<ExternalPlaceResponse> externalSearch(String query) {
-        List<KakaoLocalClient.Document> docs = kakaoLocalClient.searchKeyword(query.strip(), EXTERNAL_SEARCH_SIZE);
-        Map<String, Long> registered = placeRepository.findByKakaoPlaceIdIn(docs.stream().map(KakaoLocalClient.Document::id).toList())
+        List<ExternalPlaceSearch.ExternalPlace> docs = externalPlaceSearch.search(query.strip(), EXTERNAL_SEARCH_SIZE);
+        Map<String, Long> registered = placeRepository.findByKakaoPlaceIdIn(docs.stream().map(ExternalPlaceSearch.ExternalPlace::id).toList())
                 .stream().collect(Collectors.toMap(Place::getKakaoPlaceId, Place::getId));
         return docs.stream()
-                .map(d -> new ExternalPlaceResponse(d.id(), d.placeName(), d.categoryName(), d.addressName(),
-                        d.roadAddressName(), decimal(d.y()), decimal(d.x()), registered.get(d.id())))
+                .map(d -> new ExternalPlaceResponse(d.id(), d.name(), d.categoryName(), d.address(),
+                        d.roadAddress(), decimal(d.lat()), decimal(d.lng()), registered.get(d.id())))
                 .toList();
     }
 
     /** PLACE-04: 사용자 장소 등록. 같은 카카오 장소가 있으면 409 + details.placeId */
     @Transactional
     public PlaceDetailResponse create(Long userId, CreatePlaceRequest request) {
-        regionGuard.requireOpenDong(request.regionId());
+        regionApi.requireOpenDong(request.regionId());
         rejectDuplicate(request.kakaoPlaceId());
         Place place = placeRepository.save(Place.builder()
                 .regionId(request.regionId())
@@ -86,7 +87,7 @@ public class PlaceService {
             return;
         }
         placeRepository.findByKakaoPlaceId(kakaoPlaceId).ifPresent(existing -> {
-            throw new ApiException(ErrorCode.PLACE_ALREADY_EXISTS, ErrorCode.PLACE_ALREADY_EXISTS.getMessage(),
+            throw new ApiException(PlaceErrorCode.PLACE_ALREADY_EXISTS, PlaceErrorCode.PLACE_ALREADY_EXISTS.getMessage(),
                     Map.of("placeId", existing.getId()));
         });
     }

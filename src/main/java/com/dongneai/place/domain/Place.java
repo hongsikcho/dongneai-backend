@@ -1,6 +1,6 @@
 package com.dongneai.place.domain;
 
-import com.dongneai.common.entity.BaseTimeEntity;
+import com.dongneai.shared.entity.BaseTimeEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
