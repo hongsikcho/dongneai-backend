@@ -7,8 +7,11 @@ import java.util.Optional;
 /** 외부 장소 검색 포트. 구현은 infrastructure의 카카오 로컬 API 클라이언트. */
 public interface ExternalPlaceSearch {
 
-    /** 키워드 검색. near가 있으면 그 좌표 반경 안에서만 찾는다. */
-    List<ExternalPlace> search(String query, int size, Near near);
+    /**
+     * 키워드 검색. near가 있으면 그 좌표 반경 안에서만 찾는다.
+     * groupCode가 있으면 그 업종 그룹(예: HP8 병원)으로 좁힌다.
+     */
+    List<ExternalPlace> search(String query, int size, Near near, String groupCode);
 
     /** 좌표가 속한 행정동 코드 (10자리, 예: "4117352000"). 찾지 못하면 빈 값. */
     Optional<String> areaCodeAt(BigDecimal lat, BigDecimal lng);

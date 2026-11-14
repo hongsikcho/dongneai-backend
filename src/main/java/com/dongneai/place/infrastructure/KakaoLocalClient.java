@@ -46,8 +46,8 @@ public class KakaoLocalClient implements ExternalPlaceSearch {
     }
 
     @Override
-    public List<ExternalPlace> search(String query, int size, Near near) {
-        return searchKeyword(query, size, near).stream()
+    public List<ExternalPlace> search(String query, int size, Near near, String groupCode) {
+        return searchKeyword(query, size, near, groupCode).stream()
                 .map(d -> new ExternalPlace(d.id(), d.placeName(), d.categoryName(), d.addressName(),
                         d.roadAddressName(), d.x(), d.y()))
                 .toList();
@@ -69,11 +69,14 @@ public class KakaoLocalClient implements ExternalPlaceSearch {
                 .findFirst();
     }
 
-    public List<Document> searchKeyword(String query, int size, Near near) {
+    public List<Document> searchKeyword(String query, int size, Near near, String groupCode) {
         KeywordResponse response = call(b -> {
             b.path("/v2/local/search/keyword.json")
                     .queryParam("query", query)
                     .queryParam("size", size);
+            if (groupCode != null && !groupCode.isBlank()) {
+                b.queryParam("category_group_code", groupCode);
+            }
             if (near != null && near.lat() != null && near.lng() != null) {
                 b.queryParam("x", near.lng().toPlainString())
                         .queryParam("y", near.lat().toPlainString())

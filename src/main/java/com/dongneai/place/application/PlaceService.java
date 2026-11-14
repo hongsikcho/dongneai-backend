@@ -5,7 +5,9 @@ import com.dongneai.place.application.dto.ExternalPlaceResponse;
 import com.dongneai.place.application.dto.PlaceDetailResponse;
 import com.dongneai.place.application.dto.PlaceSummaryResponse;
 import com.dongneai.place.application.port.ExternalPlaceSearch;
+import com.dongneai.place.domain.ExternalPlacePolicy;
 import com.dongneai.place.domain.Place;
+import com.dongneai.place.domain.PlaceCategory;
 import com.dongneai.place.domain.PlaceErrorCode;
 import com.dongneai.place.domain.PlaceRepository;
 import com.dongneai.place.domain.PlaceSearchCondition;
@@ -16,6 +18,7 @@ import com.dongneai.shared.exception.ApiException;
 import com.dongneai.shared.exception.CommonErrorCode;
 import com.dongneai.shared.response.CursorPage;
 import java.math.BigDecimal;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -54,10 +57,11 @@ public class PlaceService {
 
     /**
      * PLACE-04: 카카오 장소 검색. 지역 중심 좌표에서 반경 안만 찾는다 (좌표가 없으면 '지역 이름 + 검색어').
+     * 술집 등 부적합 업종은 빼고, 아이와 가기 좋은 곳을 위로 올린다. category가 있으면 그 업종 그룹으로 좁힌다.
      * 이미 등록된 장소는 registeredPlaceId로 알려준다.
      */
     @Transactional(readOnly = true)
-    public List<ExternalPlaceResponse> externalSearch(String query, Long regionId) {
+    public List<ExternalPlaceResponse> externalSearch(String query, Long regionId, PlaceCategory category) {
         String q = query.strip();
         ExternalPlaceSearch.Near near = null;
         if (regionId != null) {
@@ -69,12 +73,19 @@ public class PlaceService {
                 q = area.fullName() + " " + q;
             }
         }
-        List<ExternalPlaceSearch.ExternalPlace> docs = externalPlaceSearch.search(q, EXTERNAL_SEARCH_SIZE, near);
+        String groupCode = ExternalPlacePolicy.kakaoGroupCode(category).orElse(null);
+        List<ExternalPlaceSearch.ExternalPlace> docs = externalPlaceSearch.search(q, EXTERNAL_SEARCH_SIZE, near, groupCode)
+                .stream()
+                .filter(d -> !ExternalPlacePolicy.isDenied(d.categoryName()))
+                .toList();
         Map<String, Long> registered = placeRepository.findByKakaoPlaceIdIn(docs.stream().map(ExternalPlaceSearch.ExternalPlace::id).toList())
                 .stream().collect(Collectors.toMap(Place::getKakaoPlaceId, Place::getId));
         return docs.stream()
                 .map(d -> new ExternalPlaceResponse(d.id(), d.name(), d.categoryName(), d.address(),
-                        d.roadAddress(), decimal(d.lat()), decimal(d.lng()), registered.get(d.id())))
+                        d.roadAddress(), decimal(d.lat()), decimal(d.lng()), registered.get(d.id()),
+                        ExternalPlacePolicy.isKidFriendly(d.categoryName(), d.name())))
+                // 아이와 가기 좋은 곳 먼저, 그 안에서는 카카오 정확도 순서 유지 (stable sort)
+                .sorted(Comparator.comparing(ExternalPlaceResponse::kidFriendly).reversed())
                 .toList();
     }
 
@@ -84,6 +95,9 @@ public class PlaceService {
      */
     @Transactional
     public PlaceDetailResponse create(Long userId, CreatePlaceRequest request) {
+        if (ExternalPlacePolicy.isDenied(request.kakaoCategoryName())) {
+            throw new ApiException(PlaceErrorCode.PLACE_NOT_ALLOWED);
+        }
         Long regionId = resolveRegion(request);
         rejectDuplicate(request.kakaoPlaceId());
         Place place = placeRepository.save(Place.builder()

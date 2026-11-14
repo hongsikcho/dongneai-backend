@@ -6,6 +6,7 @@ import java.math.BigDecimal;
  * 카카오 장소 검색 결과 1건.
  *
  * @param registeredPlaceId 이미 동네아이에 등록된 장소면 그 ID, 아니면 null
+ * @param kidFriendly       업종·이름으로 본 '아이와 가기 좋은 곳' 여부 (결과 위쪽에 온다)
  */
 public record ExternalPlaceResponse(
         String kakaoPlaceId,
@@ -15,6 +16,7 @@ public record ExternalPlaceResponse(
         String roadAddress,
         BigDecimal lat,
         BigDecimal lng,
-        Long registeredPlaceId
+        Long registeredPlaceId,
+        boolean kidFriendly
 ) {
 }

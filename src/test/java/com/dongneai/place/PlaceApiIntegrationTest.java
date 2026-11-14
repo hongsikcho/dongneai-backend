@@ -118,6 +118,18 @@ class PlaceApiIntegrationTest {
     }
 
     @Test
+    void 술집_같은_부적합_업종은_등록할_수_없다() throws Exception {
+        String body = """
+                {"regionId":%d,"name":"테스트 호프","category":"RESTAURANT","address":"안양시 (가상) 1",
+                 "kakaoPlaceId":"it-bar-%d","kakaoCategoryName":"음식점 > 술집 > 호프,요리주점"}
+                """.formatted(ANYANG, System.nanoTime() % 1_000_000_000L);
+
+        mockMvc.perform(auth(post("/api/v1/places"), userToken).content(body))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("PLACE_NOT_ALLOWED"));
+    }
+
+    @Test
     void 일반_회원은_관리자_API를_쓸_수_없다() throws Exception {
         mockMvc.perform(auth(get("/api/v1/admin/places"), userToken))
                 .andExpect(status().isForbidden());

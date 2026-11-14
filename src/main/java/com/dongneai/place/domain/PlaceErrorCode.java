@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 public enum PlaceErrorCode implements ErrorCode {
 
     PLACE_NOT_FOUND(HttpStatus.NOT_FOUND, "장소를 찾을 수 없습니다."),
+    PLACE_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "아이와 함께 가기 어려운 업종은 등록할 수 없어요."),
     OUTSIDE_SERVICE_AREA(HttpStatus.BAD_REQUEST, "아직 동네아이가 열리지 않은 지역의 장소예요."),
     PLACE_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 등록된 장소입니다."),
     EXTERNAL_SEARCH_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "장소 검색을 지금 사용할 수 없습니다.");
