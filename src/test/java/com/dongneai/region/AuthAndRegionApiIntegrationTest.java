@@ -57,9 +57,9 @@ class AuthAndRegionApiIntegrationTest {
 
     @Test
     void 지역_검색은_오픈된_동만_반환한다() throws Exception {
-        mockMvc.perform(get("/api/v1/regions").param("q", "행복"))
+        mockMvc.perform(get("/api/v1/regions").param("q", "안양"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].name").value("행복동"))
+                .andExpect(jsonPath("$[0].name").value("안양시"))
                 .andExpect(jsonPath("$.length()").value(1));
     }
 

@@ -63,10 +63,11 @@ public class PlaceController {
         return placeService.detail(placeId);
     }
 
-    /** PLACE-04 카카오 장소 검색 */
+    /** PLACE-04 카카오 장소 검색. regionId가 있으면 그 지역 중심 반경 안에서만 찾는다. */
     @GetMapping("/external-search")
-    public List<ExternalPlaceResponse> externalSearch(@RequestParam @NotBlank @Size(max = 50) String q) {
-        return placeService.externalSearch(q);
+    public List<ExternalPlaceResponse> externalSearch(@RequestParam @NotBlank @Size(max = 50) String q,
+                                                      @RequestParam(required = false) Long regionId) {
+        return placeService.externalSearch(q, regionId);
     }
 
     /** PLACE-04 장소 등록 */

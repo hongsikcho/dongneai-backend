@@ -39,7 +39,7 @@ public class FeedService {
 
     @Transactional(readOnly = true)
     public CursorPage<FeedItemResponse> feed(Long viewerId, Long regionId, PostCategory category, String cursor, int size) {
-        regionApi.requireOpenDong(regionId);
+        regionApi.requireOpenRegion(regionId);
         LocalDateTime before = parseCursor(cursor);
 
         List<Post> posts = postQueryRepository.findFeed(regionId, category, before, size + 1);

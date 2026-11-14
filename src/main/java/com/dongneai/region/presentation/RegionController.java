@@ -25,7 +25,7 @@ public class RegionController {
     @GetMapping
     @Transactional(readOnly = true)
     public List<RegionResponse> search(@RequestParam @NotBlank @Size(max = 20) String q) {
-        return regionQueryRepository.searchActiveDongs(q.strip(), MAX_RESULTS).stream()
+        return regionQueryRepository.searchActive(q.strip(), MAX_RESULTS).stream()
                 .map(RegionResponse::from)
                 .toList();
     }

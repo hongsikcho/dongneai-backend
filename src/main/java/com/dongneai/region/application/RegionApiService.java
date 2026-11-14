@@ -21,9 +21,9 @@ public class RegionApiService implements RegionApi {
 
     @Override
     @Transactional(readOnly = true)
-    public void requireOpenDong(Long regionId) {
+    public void requireOpenRegion(Long regionId) {
         boolean ok = regionRepository.findById(regionId)
-                .filter(r -> r.isActive() && r.getLevel() == Region.LEVEL_DONG)
+                .filter(Region::isActive)
                 .isPresent();
         if (!ok) {
             throw new ApiException(RegionErrorCode.REGION_NOT_FOUND);
@@ -36,6 +36,22 @@ public class RegionApiService implements RegionApi {
         if (!userRegionRepository.existsById(new UserRegionId(userId, regionId))) {
             throw new ApiException(RegionErrorCode.NOT_MY_REGION);
         }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<SearchArea> findSearchArea(Long regionId) {
+        return regionRepository.findById(regionId)
+                .filter(Region::isActive)
+                .map(r -> new SearchArea(r.getId(), r.getName(), r.getFullName(), r.getLat(), r.getLng(),
+                        r.getSearchRadiusM()));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<RegionSummary> findOpenRegionByAreaCode(String areaCode) {
+        return Region.mostSpecificOpenRegion(regionRepository.findByActiveTrue(), areaCode)
+                .map(r -> new RegionSummary(r.getId(), r.getName()));
     }
 
     @Override

@@ -42,7 +42,7 @@ public class PostService {
         if (request.regionId() == null) {
             throw new ApiException(CommonErrorCode.INVALID_REQUEST, "동네를 선택해 주세요.");
         }
-        regionApi.requireOpenDong(request.regionId());
+        regionApi.requireOpenRegion(request.regionId());
         regionApi.requireUserRegion(userId, request.regionId());
         PostContent content = toContent(request);
         if (content.placeId() != null) {

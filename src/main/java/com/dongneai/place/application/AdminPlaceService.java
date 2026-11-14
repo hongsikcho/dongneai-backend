@@ -49,7 +49,7 @@ public class AdminPlaceService {
 
     @Transactional
     public PlaceDetailResponse create(Long adminId, AdminPlaceRequest request) {
-        regionApi.requireOpenDong(request.regionId());
+        regionApi.requireOpenRegion(request.regionId());
         placeService.rejectDuplicate(request.kakaoPlaceId());
         Place place = placeRepository.save(Place.builder()
                 .regionId(request.regionId())
@@ -70,7 +70,7 @@ public class AdminPlaceService {
     @Transactional
     public PlaceDetailResponse update(Long placeId, AdminPlaceRequest request) {
         Place place = get(placeId);
-        regionApi.requireOpenDong(request.regionId());
+        regionApi.requireOpenRegion(request.regionId());
         String kakaoId = PlaceService.blankToNull(request.kakaoPlaceId());
         if (kakaoId != null && !Objects.equals(kakaoId, place.getKakaoPlaceId())) {
             placeService.rejectDuplicate(kakaoId);

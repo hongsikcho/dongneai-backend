@@ -21,7 +21,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 
 /**
  * 장소 API. 로컬 시드(R__local_seed.sql)의 장소 1~6을 기준으로 검증한다. 로컬 MySQL 필요.
- * 행복동(3): 1 숲속 실내놀이터(후기 23), 2 꼬마숲(11), 3 햇살 소아청소년과(41), 4 놀이터(4), 5 수유실(0)
+ * 안양시(3): 1 숲속 실내놀이터(후기 23), 2 꼬마숲(11), 3 햇살 소아청소년과(41), 4 놀이터(4), 5 수유실(0)
  */
 @Tag("integration")
 @SpringBootTest
@@ -29,7 +29,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 @ActiveProfiles("local")
 class PlaceApiIntegrationTest {
 
-    private static final long HAPPY_DONG = 3L;
+    private static final long ANYANG = 3L;
 
     @Autowired
     MockMvc mockMvc;
@@ -49,7 +49,7 @@ class PlaceApiIntegrationTest {
     @Test
     void 카테고리와_편의시설로_거르고_후기순으로_정렬한다() throws Exception {
         mockMvc.perform(auth(get("/api/v1/places"), userToken)
-                        .param("regionId", String.valueOf(HAPPY_DONG))
+                        .param("regionId", String.valueOf(ANYANG))
                         .param("category", "KIDS_CAFE")
                         .param("sort", "REVIEWS"))
                 .andExpect(status().isOk())
@@ -57,7 +57,7 @@ class PlaceApiIntegrationTest {
                 .andExpect(jsonPath("$.items[0].amenities[0]").value("PARKING"));
 
         mockMvc.perform(auth(get("/api/v1/places"), userToken)
-                        .param("regionId", String.valueOf(HAPPY_DONG))
+                        .param("regionId", String.valueOf(ANYANG))
                         .param("amenities", "PARKING,STROLLER")
                         .param("sort", "REVIEWS"))
                 .andExpect(jsonPath("$.items[0].id").value(3))
@@ -67,7 +67,7 @@ class PlaceApiIntegrationTest {
     @Test
     void 커서로_다음_페이지를_이어서_조회한다() throws Exception {
         String body = mockMvc.perform(auth(get("/api/v1/places"), userToken)
-                        .param("regionId", String.valueOf(HAPPY_DONG))
+                        .param("regionId", String.valueOf(ANYANG))
                         .param("sort", "REVIEWS")
                         .param("size", "2"))
                 .andExpect(jsonPath("$.items.length()").value(2))
@@ -76,7 +76,7 @@ class PlaceApiIntegrationTest {
         String cursor = objectMapper.readTree(body).get("nextCursor").asText();
 
         mockMvc.perform(auth(get("/api/v1/places"), userToken)
-                        .param("regionId", String.valueOf(HAPPY_DONG))
+                        .param("regionId", String.valueOf(ANYANG))
                         .param("sort", "REVIEWS")
                         .param("size", "2")
                         .param("cursor", cursor))
@@ -87,7 +87,7 @@ class PlaceApiIntegrationTest {
     void 장소_상세는_편의시설_4개를_모두_돌려준다() throws Exception {
         mockMvc.perform(auth(get("/api/v1/places/2"), userToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.region.name").value("행복동"))
+                .andExpect(jsonPath("$.region.name").value("안양시"))
                 .andExpect(jsonPath("$.amenities.length()").value(4))
                 .andExpect(jsonPath("$.amenities[?(@.amenity=='PARKING')].status").value("NO"))
                 .andExpect(jsonPath("$.amenities[?(@.amenity=='NURSING_ROOM')].status").value("UNKNOWN"));
@@ -102,7 +102,7 @@ class PlaceApiIntegrationTest {
         String kakaoId = "it" + System.nanoTime() % 1_000_000_000L;
         String body = """
                 {"regionId":%d,"name":"테스트 장소","category":"PLAYGROUND","address":"행복로 99","kakaoPlaceId":"%s"}
-                """.formatted(HAPPY_DONG, kakaoId);
+                """.formatted(ANYANG, kakaoId);
 
         String created = mockMvc.perform(auth(post("/api/v1/places"), userToken).content(body))
                 .andExpect(status().isCreated())
@@ -128,7 +128,7 @@ class PlaceApiIntegrationTest {
         String created = mockMvc.perform(auth(post("/api/v1/admin/places"), adminToken).content("""
                         {"regionId":%d,"name":"시딩 키즈카페","category":"KIDS_CAFE","address":"행복로 77",
                          "amenities":{"PARKING":"YES","STROLLER":"NO"},"verified":true}
-                        """.formatted(HAPPY_DONG)))
+                        """.formatted(ANYANG)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.source").value("ADMIN"))
                 .andExpect(jsonPath("$.verifiedAt").exists())
@@ -138,7 +138,7 @@ class PlaceApiIntegrationTest {
 
         mockMvc.perform(auth(patch("/api/v1/admin/places/" + placeId), adminToken).content("""
                         {"regionId":%d,"name":"시딩 키즈카페","category":"KIDS_CAFE","address":"행복로 77","status":"HIDDEN"}
-                        """.formatted(HAPPY_DONG)))
+                        """.formatted(ANYANG)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("HIDDEN"));
 

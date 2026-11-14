@@ -28,10 +28,10 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 @ActiveProfiles("local")
 class OnboardingApiIntegrationTest {
 
-    // R__local_seed.sql: 3 행복동, 4 햇살동 (활성 읍면동), 2 테스트구 (구 단위)
-    private static final long HAPPY_DONG = 3L;
-    private static final long SUNNY_DONG = 4L;
-    private static final long GU = 2L;
+    // R__local_seed.sql: 3 안양시, 4 군포시 (서비스 중), 2 의왕시 (서비스 전)
+    private static final long ANYANG = 3L;
+    private static final long GUNPO = 4L;
+    private static final long CLOSED_REGION = 2L;
 
     @Autowired
     MockMvc mockMvc;
@@ -74,9 +74,9 @@ class OnboardingApiIntegrationTest {
 
         mockMvc.perform(auth(put("/api/v1/users/me/regions")).content("""
                         {"regions":[{"regionId":%d,"primary":false},{"regionId":%d,"primary":true}]}
-                        """.formatted(HAPPY_DONG, SUNNY_DONG)))
+                        """.formatted(ANYANG, GUNPO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(SUNNY_DONG))
+                .andExpect(jsonPath("$[0].id").value(GUNPO))
                 .andExpect(jsonPath("$[0].primary").value(true))
                 .andExpect(jsonPath("$.length()").value(2));
 
@@ -125,14 +125,14 @@ class OnboardingApiIntegrationTest {
         // 기본 동네 2개
         mockMvc.perform(auth(put("/api/v1/users/me/regions")).content("""
                         {"regions":[{"regionId":%d,"primary":true},{"regionId":%d,"primary":true}]}
-                        """.formatted(HAPPY_DONG, SUNNY_DONG)))
+                        """.formatted(ANYANG, GUNPO)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("INVALID_REGION_SELECTION"));
 
         // 동이 아닌 구
         mockMvc.perform(auth(put("/api/v1/users/me/regions")).content("""
                         {"regions":[{"regionId":%d,"primary":true}]}
-                        """.formatted(GU)))
+                        """.formatted(CLOSED_REGION)))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value("REGION_NOT_FOUND"));
     }

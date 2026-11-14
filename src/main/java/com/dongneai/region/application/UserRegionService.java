@@ -57,7 +57,7 @@ public class UserRegionService {
 
         List<Region> regions = regionRepository.findAllById(ids);
         boolean allSelectable = regions.size() == ids.size()
-                && regions.stream().allMatch(r -> r.isActive() && r.getLevel() == Region.LEVEL_DONG);
+                && regions.stream().allMatch(Region::isActive);
         if (!allSelectable) {
             throw new ApiException(RegionErrorCode.REGION_NOT_FOUND);
         }

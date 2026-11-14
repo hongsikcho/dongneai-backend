@@ -31,7 +31,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 
 /**
  * 후기 API. 로컬 MySQL 필요. 매 실행마다 새 회원(UUID)으로 쓰므로 반복 실행해도 된다.
- * 장소 5(행복동 주민센터 수유실)에 쓰고, 후기 수는 실행 전 값과의 차이로 검증한다.
+ * 장소 5(안양시 주민센터 수유실)에 쓰고, 후기 수는 실행 전 값과의 차이로 검증한다.
  * 장소 목록 정렬 테스트가 시드의 후기 수에 기대므로, 만든 후기는 테스트가 끝나면 지운다.
  */
 @Tag("integration")
