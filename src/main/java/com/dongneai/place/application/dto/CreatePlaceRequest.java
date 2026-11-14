@@ -17,6 +17,6 @@ public record CreatePlaceRequest(
         @DecimalMin("-90") @DecimalMax("90") BigDecimal lat,
         @DecimalMin("-180") @DecimalMax("180") BigDecimal lng,
         @Size(max = 30) String kakaoPlaceId,
-        @Size(max = 200) String kakaoCategoryName
+        @NotBlank @Size(max = 200) String kakaoCategoryName
 ) {
 }

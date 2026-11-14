@@ -70,7 +70,7 @@ public class PlaceController {
     @GetMapping("/external-search")
     public List<ExternalPlaceResponse> externalSearch(@RequestParam @NotBlank @Size(max = 50) String q,
                                                       @RequestParam(required = false) Long regionId,
-                                                      @RequestParam(required = false) PlaceCategory category) {
+                                                      @RequestParam PlaceCategory category) {
         return placeService.externalSearch(q, regionId, category);
     }
 

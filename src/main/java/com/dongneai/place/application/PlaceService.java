@@ -57,15 +57,12 @@ public class PlaceService {
 
     /**
      * PLACE-04: 카카오 장소 검색. 지역 중심 좌표에서 반경 안만 찾는다 (좌표가 없으면 '지역 이름 + 검색어').
-     * 술집 등 부적합 업종은 빼고, 아이와 가기 좋은 곳을 위로 올린다. category가 있으면 그 업종 그룹으로 좁힌다.
+     * 고른 카테고리에 맞는 업종만 남기고 (술집 등은 어느 카테고리로도 안 남는다), 아이와 가기 좋은 곳을 위로 올린다.
      * 이미 등록된 장소는 registeredPlaceId로 알려준다.
      */
     @Transactional(readOnly = true)
     public List<ExternalPlaceResponse> externalSearch(String query, Long regionId, PlaceCategory category) {
         String q = query.strip();
-        if (ExternalPlacePolicy.isDeniedQuery(q)) {
-            return List.of();
-        }
         ExternalPlaceSearch.Near near = null;
         if (regionId != null) {
             RegionApi.SearchArea area = regionApi.findSearchArea(regionId)
@@ -79,7 +76,7 @@ public class PlaceService {
         String groupCode = ExternalPlacePolicy.kakaoGroupCode(category).orElse(null);
         List<ExternalPlaceSearch.ExternalPlace> docs = externalPlaceSearch.search(q, EXTERNAL_SEARCH_SIZE, near, groupCode)
                 .stream()
-                .filter(d -> !ExternalPlacePolicy.isDenied(d.categoryName(), d.name()))
+                .filter(d -> ExternalPlacePolicy.allows(category, d.categoryName()))
                 .toList();
         Map<String, Long> registered = placeRepository.findByKakaoPlaceIdIn(docs.stream().map(ExternalPlaceSearch.ExternalPlace::id).toList())
                 .stream().collect(Collectors.toMap(Place::getKakaoPlaceId, Place::getId));
@@ -98,7 +95,7 @@ public class PlaceService {
      */
     @Transactional
     public PlaceDetailResponse create(Long userId, CreatePlaceRequest request) {
-        if (ExternalPlacePolicy.isDenied(request.kakaoCategoryName(), request.name())) {
+        if (!ExternalPlacePolicy.allows(request.category(), request.kakaoCategoryName())) {
             throw new ApiException(PlaceErrorCode.PLACE_NOT_ALLOWED);
         }
         Long regionId = resolveRegion(request);

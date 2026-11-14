@@ -101,7 +101,8 @@ class PlaceApiIntegrationTest {
     void 같은_카카오_장소는_두_번_등록할_수_없다() throws Exception {
         String kakaoId = "it" + System.nanoTime() % 1_000_000_000L;
         String body = """
-                {"regionId":%d,"name":"테스트 장소","category":"PLAYGROUND","address":"행복로 99","kakaoPlaceId":"%s"}
+                {"regionId":%d,"name":"테스트 장소","category":"PLAYGROUND","address":"행복로 99","kakaoPlaceId":"%s",
+                 "kakaoCategoryName":"여행 > 공원 > 어린이공원"}
                 """.formatted(ANYANG, kakaoId);
 
         String created = mockMvc.perform(auth(post("/api/v1/places"), userToken).content(body))
@@ -122,6 +123,18 @@ class PlaceApiIntegrationTest {
         String body = """
                 {"regionId":%d,"name":"테스트 호프","category":"RESTAURANT","address":"안양시 (가상) 1",
                  "kakaoPlaceId":"it-bar-%d","kakaoCategoryName":"음식점 > 술집 > 호프,요리주점"}
+                """.formatted(ANYANG, System.nanoTime() % 1_000_000_000L);
+
+        mockMvc.perform(auth(post("/api/v1/places"), userToken).content(body))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("PLACE_NOT_ALLOWED"));
+    }
+
+    @Test
+    void 고른_종류와_업종이_안_맞으면_등록할_수_없다() throws Exception {
+        String body = """
+                {"regionId":%d,"name":"할매국밥","category":"KIDS_CAFE","address":"안양시 (가상) 2",
+                 "kakaoPlaceId":"it-mismatch-%d","kakaoCategoryName":"음식점 > 한식 > 국밥"}
                 """.formatted(ANYANG, System.nanoTime() % 1_000_000_000L);
 
         mockMvc.perform(auth(post("/api/v1/places"), userToken).content(body))
