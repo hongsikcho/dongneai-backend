@@ -10,11 +10,27 @@ class ExternalPlacePolicyTest {
 
     @Test
     void 술집_숙박_유흥_업종은_막는다() {
-        assertThat(ExternalPlacePolicy.isDenied("음식점 > 술집 > 호프,요리주점")).isTrue();
-        assertThat(ExternalPlacePolicy.isDenied("숙박 > 모텔")).isTrue();
-        assertThat(ExternalPlacePolicy.isDenied("가정,생활 > PC방")).isTrue();
-        assertThat(ExternalPlacePolicy.isDenied("음식점 > 한식 > 국밥")).isFalse();
-        assertThat(ExternalPlacePolicy.isDenied(null)).isFalse();
+        assertThat(ExternalPlacePolicy.isDenied("음식점 > 술집 > 호프,요리주점", null)).isTrue();
+        assertThat(ExternalPlacePolicy.isDenied("숙박 > 모텔", null)).isTrue();
+        assertThat(ExternalPlacePolicy.isDenied("가정,생활 > PC방", null)).isTrue();
+        assertThat(ExternalPlacePolicy.isDenied("음식점 > 한식 > 국밥", null)).isFalse();
+        assertThat(ExternalPlacePolicy.isDenied(null, null)).isFalse();
+    }
+
+    @Test
+    void 업종이_술집이_아니어도_이름이_포차_펍이면_막는다() {
+        assertThat(ExternalPlacePolicy.isDenied("음식점 > 치킨", "안양 치킨호프")).isTrue();
+        assertThat(ExternalPlacePolicy.isDenied("음식점 > 양식", "범계 수제맥주 펍")).isTrue();
+        assertThat(ExternalPlacePolicy.isDenied("음식점 > 한식", "평촌 실내포차")).isTrue();
+        assertThat(ExternalPlacePolicy.isDenied("음식점 > 치킨", "교촌치킨 평촌점")).isFalse();
+    }
+
+    @Test
+    void 술집을_찾는_검색어는_검색하지_않는다() {
+        assertThat(ExternalPlacePolicy.isDeniedQuery("안양 술집")).isTrue();
+        assertThat(ExternalPlacePolicy.isDeniedQuery("포차")).isTrue();
+        assertThat(ExternalPlacePolicy.isDeniedQuery("미술학원")).isFalse();
+        assertThat(ExternalPlacePolicy.isDeniedQuery("키즈카페")).isFalse();
     }
 
     @Test

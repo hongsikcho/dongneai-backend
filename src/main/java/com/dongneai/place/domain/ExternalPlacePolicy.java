@@ -13,7 +13,17 @@ public final class ExternalPlacePolicy {
     /** 아이와 함께 가기 어려운 업종. 검색 결과에서 빼고 등록도 막는다. */
     private static final List<String> DENIED = List.of(
             "술집", "주점", "호프", "유흥", "나이트", "단란", "룸살롱", "노래방", "노래연습장",
-            "pc방", "당구장", "모텔", "여관", "여인숙", "성인", "카지노", "경마", "경륜", "복권", "담배", "게임장");
+            "pc방", "당구장", "모텔", "여관", "여인숙", "성인", "카지노", "경마", "경륜", "복권", "담배", "게임장",
+            "와인바", "칵테일", "포장마차", "이자카야", "바(bar)");
+
+    /**
+     * 장소 이름이나 검색어에 이 말이 들어가면 술 파는 곳으로 본다.
+     * 카카오 업종이 "음식점 > 치킨", "음식점 > 양식"처럼 술집으로 안 잡히는 가게(포차, 펍, 호프 겸 치킨집)를 막는다.
+     * "술" 한 글자는 미술·마술학원까지 걸려서 넣지 않는다.
+     */
+    private static final List<String> DENIED_NAME = List.of(
+            "술집", "주점", "포차", "포장마차", "이자카야", "호프", "펍", "와인바", "칵테일", "맥주",
+            "하이볼", "위스키", "노래방", "노래연습장", "pc방", "모텔", "룸살롱", "단란", "나이트");
 
     /** 아이와 가기 좋은 곳 신호. 업종 이름이나 장소 이름에 있으면 검색 결과 위로 올린다. */
     private static final List<String> KID_FRIENDLY = List.of(
@@ -23,8 +33,14 @@ public final class ExternalPlacePolicy {
     private ExternalPlacePolicy() {
     }
 
-    public static boolean isDenied(String kakaoCategoryName) {
-        return containsAny(kakaoCategoryName, DENIED);
+    /** 업종 이름이나 장소 이름으로 본 부적합 장소. */
+    public static boolean isDenied(String kakaoCategoryName, String placeName) {
+        return containsAny(kakaoCategoryName, DENIED) || containsAny(placeName, DENIED_NAME);
+    }
+
+    /** "술집", "포차"처럼 부적합 장소를 찾는 검색어. 검색 자체를 하지 않는다. */
+    public static boolean isDeniedQuery(String query) {
+        return containsAny(query, DENIED_NAME);
     }
 
     public static boolean isKidFriendly(String kakaoCategoryName, String placeName) {

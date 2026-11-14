@@ -63,6 +63,9 @@ public class PlaceService {
     @Transactional(readOnly = true)
     public List<ExternalPlaceResponse> externalSearch(String query, Long regionId, PlaceCategory category) {
         String q = query.strip();
+        if (ExternalPlacePolicy.isDeniedQuery(q)) {
+            return List.of();
+        }
         ExternalPlaceSearch.Near near = null;
         if (regionId != null) {
             RegionApi.SearchArea area = regionApi.findSearchArea(regionId)
@@ -76,7 +79,7 @@ public class PlaceService {
         String groupCode = ExternalPlacePolicy.kakaoGroupCode(category).orElse(null);
         List<ExternalPlaceSearch.ExternalPlace> docs = externalPlaceSearch.search(q, EXTERNAL_SEARCH_SIZE, near, groupCode)
                 .stream()
-                .filter(d -> !ExternalPlacePolicy.isDenied(d.categoryName()))
+                .filter(d -> !ExternalPlacePolicy.isDenied(d.categoryName(), d.name()))
                 .toList();
         Map<String, Long> registered = placeRepository.findByKakaoPlaceIdIn(docs.stream().map(ExternalPlaceSearch.ExternalPlace::id).toList())
                 .stream().collect(Collectors.toMap(Place::getKakaoPlaceId, Place::getId));
@@ -95,7 +98,7 @@ public class PlaceService {
      */
     @Transactional
     public PlaceDetailResponse create(Long userId, CreatePlaceRequest request) {
-        if (ExternalPlacePolicy.isDenied(request.kakaoCategoryName())) {
+        if (ExternalPlacePolicy.isDenied(request.kakaoCategoryName(), request.name())) {
             throw new ApiException(PlaceErrorCode.PLACE_NOT_ALLOWED);
         }
         Long regionId = resolveRegion(request);
